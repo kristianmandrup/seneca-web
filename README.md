@@ -1,21 +1,23 @@
-# seneca-web - a [Seneca](http://senecajs.org) plugin
+seneca-web - a [Seneca](http://senecajs.org) plugin
+===================================================
 
+Goals
+-----
 
-## Seneca web plugin
+This repo is a tweak of the original seneca-web plugin. All references to frontend libraries, such as Angular, Bootstrap etc. have been removed. It is purely server side. Secondly, the code is being refactored into smaller modules instead of having all the code in one file.
 
-This plugin provides a web service API routing layer for Seneca action
-patterns. It translates HTTP requests with specific URL routes into
-action pattern calls. It's a built-in dependency of the Seneca module,
-so you don't need to include it manually. Use this plugin to define
-your web service API.
+Next goal is to support Koa server (with generators and async functions!) instead of only supporting the old Express connect style interface where req/res is passed around as arguments.
 
-This plugin supports [Express](http://expressjs.com/)-style middleware. 
-To use Seneca with [hapi](http://hapijs.com/), 
-see [chairo](https://www.npmjs.com/package/chairo) hapi plugin.
+When we have this working, we will use a Babel boilerplate template to make it support ES6/7. Please help out in this effort to modernize Seneca for 2015 and beyond!
 
-For a gentle introduction to Seneca itself, see the
-[senecajs.org](http://senecajs.org) site.
+Seneca web plugin
+-----------------
 
+This plugin provides a web service API routing layer for Seneca action patterns. It translates HTTP requests with specific URL routes into action pattern calls. It's a built-in dependency of the Seneca module, so you don't need to include it manually. Use this plugin to define your web service API.
+
+This plugin supports [Express](http://expressjs.com/)-style middleware. To use Seneca with [hapi](http://hapijs.com/), see [chairo](https://www.npmjs.com/package/chairo) hapi plugin.
+
+For a gentle introduction to Seneca itself, see the[senecajs.org](http://senecajs.org) site.
 
 ### Support
 
@@ -31,10 +33,9 @@ Built and tested against versions: `0.10, 0.11, 0.12, iojs`
 
 If you're using this module, and need help, you can:
 
-   * Post a [github issue](//github.com/rjrodger/seneca-web/issues),
-   * Tweet to [@senecajs](http://twitter.com/senecajs),
-   * Ask on the [![Gitter chat](https://badges.gitter.im/rjrodger/seneca-web.png)](https://gitter.im/rjrodger/seneca-web).
-
+-	Post a [github issue](//github.com/rjrodger/seneca-web/issues),
+-	Tweet to [@senecajs](http://twitter.com/senecajs),
+-	Ask on the [![Gitter chat](https://badges.gitter.im/rjrodger/seneca-web.png)](https://gitter.im/rjrodger/seneca-web).
 
 ### Install
 
@@ -44,15 +45,15 @@ This plugin module is included in the main Seneca module:
 npm install seneca
 ```
 
-
-## Quick example
+Quick example
+-------------
 
 This example defines some API end point URLs that correspond to Seneca actions:
 
-   * `GET /my-api/zig`: `role:api,cmd:zig`
-   * `GET /my-api/bar`: `role:api,cmd:bar`
-   * `GET /my-api/qaz`: `role:api,cmd:qaz`
-   * `POST /my-api/qaz`: `role:api,cmd:qaz`
+-	`GET /my-api/zig`: `role:api,cmd:zig`
+-	`GET /my-api/bar`: `role:api,cmd:bar`
+-	`GET /my-api/qaz`: `role:api,cmd:qaz`
+-	`POST /my-api/qaz`: `role:api,cmd:qaz`
 
 ```JavaScript
 var seneca = require('seneca')()
@@ -105,72 +106,43 @@ app.listen(3000)
 // returns {"qaz":"bz"}
 ```
 
+Usage
+-----
 
-## Usage
+The primary purpose of this plugin is to define URL routes that map to action patterns. This lets you turn your action patterns into a well-defined web service API.
 
-The primary purpose of this plugin is to define URL routes that map to
-action patterns. This lets you turn your action patterns into a
-well-defined web service API.
+-	Use a separate set of action patterns for your web service API. Don't expose your internal patterns! \*
 
-* Use a separate set of action patterns for your web service
-  API. Don't expose your internal patterns! *
+The `role:web` action accepts a `use` parameter that is a declarative definition of a set of routes. You specify a set of action patterns that will be exposed, and the URL routes that map to each pattern. Each call to the `role:web` action defines a middleware service with a set of routes. Incoming requests are passed to each service in turn until one matches. If none match, the request is passed onwards down the middleware chain.
 
-The `role:web` action accepts a `use` parameter that is a declarative
-definition of a set of routes. You specify a set of action patterns
-that will be exposed, and the URL routes that map to each
-pattern. Each call to the `role:web` action defines a middleware
-service with a set of routes. Incoming requests are passed to each
-service in turn until one matches. If none match, the request is
-passed onwards down the middleware chain.
+The `use` parameter can also be an Express-style middleware function of the form `function( req, res, next )`. You are then free to handle the action mapping yourself.
 
-The `use` parameter can also be an Express-style middleware function
-of the form `function( req, res, next )`. You are then free to handle
-the action mapping yourself.
-
-To use the services in your app, call `seneca.export('web')` to obtain
-a wrapper middleware function that performs the route matching.
-
+To use the services in your app, call `seneca.export('web')` to obtain a wrapper middleware function that performs the route matching.
 
 #### Alternative Approach
 
-You can use Seneca directly from with your route handlers by just
-calling `seneca.act` directly. You don't need to use `seneca-web` at
-all. This approach may be more convenient if you already have a larger
-scale application architecture, or are integrating Seneca into an
-existing system.
-
+You can use Seneca directly from with your route handlers by just calling `seneca.act` directly. You don't need to use `seneca-web` at all. This approach may be more convenient if you already have a larger scale application architecture, or are integrating Seneca into an existing system.
 
 #### Warning
 
-This plugin does not provide an access control feature, or protect you
-from attacks such as request forgery. However, since it does support
-the middleware pattern, you can use [other middleware
-modules](http://expressjs.com/resources/middleware.html) to provide
-these features.
+This plugin does not provide an access control feature, or protect you from attacks such as request forgery. However, since it does support the middleware pattern, you can use [other middleware modules](http://expressjs.com/resources/middleware.html) to provide these features.
 
-
-## Action Patterns
+Action Patterns
+---------------
 
 ### `role:web`
 
 Define a web service as a mapping from URL routes to action patterns.
 
-_Parameters_
- 
-   * `use`: mapping object, or middleware function
+*Parameters*
+
+-	`use`: mapping object, or middleware function
 
 #### Middleware Function
 
-When `use` is a function of the form `function(req,res,next) { ... }`
-it is considered to be a middleware function, and placed into the list
-of middleware provided by the _seneca-web_ plugin.
+When `use` is a function of the form `function(req,res,next) { ... }` it is considered to be a middleware function, and placed into the list of middleware provided by the *seneca-web* plugin.
 
-Use this approach when you need to write special case custom code. The
-`req` parameter will contain a `seneca` property that gives you access
-to the Seneca instance bound to the current HTTP request. In a HTTP
-middleware context it's important to use the request specific Seneca
-instance, as other plugins may have added context to that
-instance. See, for example: [seneca-user](//github.com/rjrodger/seneca-user).
+Use this approach when you need to write special case custom code. The`req` parameter will contain a `seneca` property that gives you access to the Seneca instance bound to the current HTTP request. In a HTTP middleware context it's important to use the request specific Seneca instance, as other plugins may have added context to that instance. See, for example: [seneca-user](//github.com/rjrodger/seneca-user).
 
 ```JavaScript
 seneca.add('zed:1',function(args,done){
@@ -194,30 +166,26 @@ seneca.act('role:web', {use: function( req, res, next ){
 
 #### Route Action Mapping
 
-The action mapping object is a convenience format for declarative
-definition of a HTTP API based on Seneca actions. You can see examples
-of this use-case in these projects:
+The action mapping object is a convenience format for declarative definition of a HTTP API based on Seneca actions. You can see examples of this use-case in these projects:
 
-   * [seneca-examples project](http://github.com/rjrodger/seneca-examples)
-   * [Well App](http://github.com/nearform/well)
-   * [Nodezoo module search engine](http://github.com/rjrodger/nodezoo)
+-	[seneca-examples project](http://github.com/rjrodger/seneca-examples)
+-	[Well App](http://github.com/nearform/well)
+-	[Nodezoo module search engine](http://github.com/rjrodger/nodezoo)
 
-You specify a set of action patterns, and the URL routes that map to
-these patterns. The set of patterns is specified using a _pin_, an
-example pattern that includes wildcards for some properties.
+You specify a set of action patterns, and the URL routes that map to these patterns. The set of patterns is specified using a *pin*, an example pattern that includes wildcards for some properties.
 
 For example, if you have defined the patterns:
 
-   * `seneca.add( 'role:color,cmd:red', ... )`
-   * `seneca.add( 'role:color,cmd:green', ... )`
-   * `seneca.add( 'role:color,cmd:blue', ... )`
-   * `seneca.add( 'role:sound,cmd:piano', ... )`
+-	`seneca.add( 'role:color,cmd:red', ... )`
+-	`seneca.add( 'role:color,cmd:green', ... )`
+-	`seneca.add( 'role:color,cmd:blue', ... )`
+-	`seneca.add( 'role:sound,cmd:piano', ... )`
 
 Then the pin `role:color,cmd:*` will pick out the first three patterns:
 
-   * `role:color,cmd:red`
-   * `role:color,cmd:green`
-   * `role:color,cmd:blue`
+-	`role:color,cmd:red`
+-	`role:color,cmd:green`
+-	`role:color,cmd:blue`
 
 but not `role:sound,cmd:piano` as that does not match the pin pattern.
 
@@ -247,8 +215,7 @@ seneca.act('role:web', {use:{
 }})
 ```
 
-Which creates an HTTP API that responds like so (review
-[test.sh](test.sh) and [test/example.js](test/example.js) to see full code):
+Which creates an HTTP API that responds like so (review[test.sh](test.sh) and [test/example.js](test/example.js) to see full code):
 
 ```bash
 $ curl -m 1 -s http://localhost:3000/color/red
@@ -263,18 +230,15 @@ $ curl -m 1 -s http://localhost:3000/color/blue
 
 The properties of the mapping define the routes and the action patterns to call:
 
-   * `prefix`: prefix string for the URL, in this case _/color_
-   * `pin`:    the pin that selects the actions
-   * `map`:    each property of this sub-object should correspond to a matched wildcard value, in this case: red, green, and blue
+-	`prefix`: prefix string for the URL, in this case */color*
+-	`pin`: the pin that selects the actions
+-	`map`: each property of this sub-object should correspond to a matched wildcard value, in this case: red, green, and blue
 
-The map entries define the nature of the route. In the above example,
-the default case is to respond to HTTP GET requests. The mapping forms
-URLs by appending the name of the wildcard value to the prefix to form
-the full URL. So you end up with these endpoints:
+The map entries define the nature of the route. In the above example, the default case is to respond to HTTP GET requests. The mapping forms URLs by appending the name of the wildcard value to the prefix to form the full URL. So you end up with these endpoints:
 
-   * `GET /color/red`
-   * `GET /color/green`
-   * `GET /color/blue`
+-	`GET /color/red`
+-	`GET /color/green`
+-	`GET /color/blue`
 
 To respond to POST requests, do this:
 
@@ -288,10 +252,7 @@ seneca.act('role:web', {use:{
 }})
 ```
 
-The argument properties for your action are built from the URL
-parameters, query string, and body data, *merged* in that order of
-precedence. You can modify this behaviour with the _useparams_ and
-_usequery_ settings, as described below.
+The argument properties for your action are built from the URL parameters, query string, and body data, *merged* in that order of precedence. You can modify this behaviour with the *useparams* and*usequery* settings, as described below.
 
 Example:
 
@@ -318,51 +279,42 @@ http://localhost:3000/api/echo/a?bar=b
   {"cmd":"echo","role":"api","zed":"c","foo":"a","bar":"b"}
 ```
 
+**Note: you do not have to list all the matching wildcards in a map. Only those you list explicitly will be supported.**
 
-**Note: you do not have to list all the matching wildcards in a map. Only those
-  you list explicitly will be supported.**
+The wildcard mapping object accepts the following optional properties that let you refine the route specification:
 
-The wildcard mapping object accepts the following optional properties
-that let you refine the route specification:
+-	*METHOD*: any HTTP method (GET, POST, PUT, DELETE, etc); the value can be:
+	-	*true*: accept requests with this method.
+	-	a middleware function: this allows you to completely customize the route.
+	-	a method specification, see below.
+-	*alias*: custom URL path, concatenated to top level prefix; can contain Express-style route parameters: */api/:bar* sets *req.params.bar*.
+-	*suffix*: appended to route URL.
+-	*useparams*: merge any URL parameter values into the arguments for the Seneca action; default: `true`
+-	*usequery*: merge any URL query values into the arguments for the Seneca action; default: `true`
+-	*dataprop*: provide all request parameters inside a `data` property on the Seneca action, default: `false`
+-	*redirect*: perform a 302 redirection with the value as the new location URL.
+-	*handler*: function that translates inbound requests to Seneca actions, see below.
+-	*responder*: function that translates outbound Seneca results into HTTP response data, see below.
+-	*modify*: function that modifies the output object in some way (usually to delete sensitive fields), see below.
 
-   * _METHOD_: any HTTP method (GET, POST, PUT, DELETE, etc); the value can be:
-      *  _true_: accept requests with this method.
-      * a middleware function: this allows you to completely customize the route.
-      * a method specification, see below.
-   * _alias_: custom URL path, concatenated to top level prefix; can contain Express-style route parameters: _/api/:bar_ sets _req.params.bar_.
-   * _suffix_: appended to route URL.
-   * _useparams_: merge any URL parameter values into the arguments for the Seneca action; default: `true` 
-   * _usequery_: merge any URL query values into the arguments for the Seneca action; default: `true` 
-   * _dataprop_: provide all request parameters inside a `data` property on the Seneca action, default: `false`
-   * _redirect_: perform a 302 redirection with the value as the new location URL.
-   * _handler_: function that translates inbound requests to Seneca actions, see below.
-   * _responder_: function that translates outbound Seneca results into HTTP response data, see below.
-   * _modify_: function that modifies the output object in some way (usually to delete sensitive fields), see below.
+The response object that you provide to the seneca-web plugin via a Seneca action response, can contain a `http$` object to control the HTTP response. This object can have the optional properties:
 
-The response object that you provide to the seneca-web plugin via a
-Seneca action response, can contain a `http$` object to control the
-HTTP response. This object can have the optional properties:
+-	*status*: set the HTTP status code
+-	*headers*: sub-object defining custom header values
+-	*redirect*: redirect URL
 
-   * _status_: set the HTTP status code
-   * _headers_: sub-object defining custom header values
-   * _redirect_: redirect URL
-   
-For each HTTP method, you can provide a method specification (as a
-sub-object) that overrides some of the route specification. Note that
-URL cannot be modified at the method level - that would be a different
-route! In particular this means that the _alias_ can only be set at
-the route specification level. If you need other behaviour, your best
-option is to write a custom middleware function, as noted above.
+For each HTTP method, you can provide a method specification (as a sub-object) that overrides some of the route specification. Note that URL cannot be modified at the method level - that would be a different route! In particular this means that the *alias* can only be set at the route specification level. If you need other behaviour, your best option is to write a custom middleware function, as noted above.
 
-The method specification can contain the following properties, which
-override the route specification:
+The method specification can contain the following properties, which override the route specification:
 
-    * _useparams_
-    * _usequery_
-    * _dataprop_
-    * _handler_
-    * _responder_
-    * _modify_
+```
+* _useparams_
+* _usequery_
+* _dataprop_
+* _handler_
+* _responder_
+* _modify_
+```
 
 Example:
 
@@ -376,50 +328,37 @@ seneca.act('role:web', {use:{
 }})
 ```
 
-## Handler Function
+Handler Function
+----------------
 
 This function has the form: `function( req, res, args, act, respond )`, where:
-     
-   * _req_: Express Request object
-   * _res_: Express Response object
-   * _args_: Seneca action arguments derived from the HTTP request parameters
-   * _act_: the Seneca action function, call with `act(args,respond)`
-   * _respond_: call to return a result: `respond(err,out)`
 
-Provide your own handler function when you need to customize the
-behaviour of a route.
+-	*req*: Express Request object
+-	*res*: Express Response object
+-	*args*: Seneca action arguments derived from the HTTP request parameters
+-	*act*: the Seneca action function, call with `act(args,respond)`
+-	*respond*: call to return a result: `respond(err,out)`
 
+Provide your own handler function when you need to customize the behaviour of a route.
 
 #### Responder Function
 
 This function has the form: `function( req, res, err, out )`, where:
 
-   * _req_: express Request object
-   * _res_: express Response object
-   * _err_: Seneca action error, if any
-   * _out_: Seneca action result, if any
+-	*req*: express Request object
+-	*res*: express Response object
+-	*err*: Seneca action error, if any
+-	*out*: Seneca action result, if any
 
-Provide your own responder function when you need to customize the
-exact data of the HTTP response.
-
+Provide your own responder function when you need to customize the exact data of the HTTP response.
 
 #### Modify Function
 
-The output of a Seneca action is an object that is serialized to JSON
-and returned over HTTP. It is normally necessary to remove unwanted
-properties that should not appear to network clients. The default
-modifier removes all properties that contain a `$`, as these are used
-by Seneca for internal meta control. The `http$` is preserved, as this
-is used (and removed) by the default responder. Provide your own
-modifer function to customize this behavior.
-
+The output of a Seneca action is an object that is serialized to JSON and returned over HTTP. It is normally necessary to remove unwanted properties that should not appear to network clients. The default modifier removes all properties that contain a `$`, as these are used by Seneca for internal meta control. The `http$` is preserved, as this is used (and removed) by the default responder. Provide your own modifer function to customize this behavior.
 
 #### General Middleware
 
-At the top level, you can also provide general middleware functions
-that get called before the mapping handlers are executed. These
-functions allow you to perform shared operations, such as extracting a
-cookie token, or attaching meta data to Request objects.
+At the top level, you can also provide general middleware functions that get called before the mapping handlers are executed. These functions allow you to perform shared operations, such as extracting a cookie token, or attaching meta data to Request objects.
 
 ```
 seneca.act('role:web', {use:{
@@ -446,24 +385,15 @@ seneca.act('role:web', {use:{
 
 These general middleware functions are:
 
-   * _startware_: always executed, before any mappings, *even when there is no route match*
-   * _premap_: only executed when a mapping matches, and before the mapping; can also be used at the mapping level for route-specific behaviour
-   * _postmap_: executed only when a custom mapping middleware calls `next`.
+-	*startware*: always executed, before any mappings, *even when there is no route match*
+-	*premap*: only executed when a mapping matches, and before the mapping; can also be used at the mapping level for route-specific behaviour
+-	*postmap*: executed only when a custom mapping middleware calls `next`.
 
-The primary advantage of using the mapping specification over a custom
-middleware function is that seneca-web maintains a list of mapped
-routes, and also performance statistics for those routes. Each time
-you call `role:web` you define a service, and the service defines a
-number of routes.
-
+The primary advantage of using the mapping specification over a custom middleware function is that seneca-web maintains a list of mapped routes, and also performance statistics for those routes. Each time you call `role:web` you define a service, and the service defines a number of routes.
 
 #### Example Code
 
-You can see some (admittedly terse) examples of mapping specifications
-in the [test/test-server.js](test-server.js) and
-[test/test-client.js](test-client.js) testing code, or in the example
-applications noted above ([nodezoo.com](nodezoo.com) etc).
-
+You can see some (admittedly terse) examples of mapping specifications in the [test/test-server.js](test-server.js) and[test/test-client.js](test-client.js) testing code, or in the example applications noted above ([nodezoo.com](nodezoo.com) etc).
 
 ### `role:web,cmd:routes`
 
@@ -477,10 +407,9 @@ seneca.act('role:web, cmd:routes', function(err, routes) {
 
 Each route is described as an object with properties:
 
-   * _url_: the route URL
-   * _method_: the HTTP method
-   * _srv_: the service that defined the route
-
+-	*url*: the route URL
+-	*method*: the HTTP method
+-	*srv*: the service that defined the route
 
 ### `role:web,cmd:list`
 
@@ -492,9 +421,8 @@ seneca.act('role:web, cmd:list', function(err, services) {
 });
 ```
 
-
-
-## Development & Test
+Development & Test
+------------------
 
 To test, use:
 
@@ -519,4 +447,3 @@ var seneca = require('seneca')({
 seneca.use( require('seneca-web') )
 
 ```
-
